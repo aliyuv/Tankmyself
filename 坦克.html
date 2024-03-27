@@ -58,9 +58,6 @@
     const newValue = currentValue + (speed * sign)
     const wh = property === `left` ? `width` : `height`
     const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh]
-    console.log("Current value:", currentValue);
-    console.log("New value:", newValue);
-    console.log("Max limit:", maxLimit);
 
     if (newValue < 0) {
       box.style[property] = 0
@@ -99,7 +96,6 @@
       || event.key === 'ArrowRight') {
       x()
     }
-
     switch (event.key) {
       case `ArrowUp`:
         direction = `bt`
@@ -118,8 +114,48 @@
         direction = `lr`
         updatePosition(box)
         break
+      case ` `:
+        //子弹发射
+        //创建子弹  初始化子弹起始位置
+        const bullet = document.createElement('div')
+        bullet.style.width = `${10}px`
+        bullet.style.height = `${10}px`
+        bullet.style.background = `#000`
+        bullet.style.borderRadius = `50%`
+        bullet.style.position = `absolute`
+        //红色方块的宽度的 一半加上 红色方块的left
+        const {width: boxW, height: boxH, top: boxT, left: boxL} = getElementPosition(box)
+        bullet.style.left = `${(boxW / 2) + boxL - 5}px`
+        bullet.style.top = `${boxT + boxH}px`
+        square.appendChild(bullet)
+        shootBullets()
+        break
     }
   })
+
+
+  let bulletTimer = null
+  let positionY = 0
+
+  function shootBullets() {
+    clearTimeout(bulletTimer)
+    //发射子弹运动函数
+    bulletTimer = setTimeout(function () {
+      positionY += speed * 2
+      const bullet = document.createElement('div')
+      bullet.style.width = `${10}px`
+      bullet.style.height = `${10}px`
+      bullet.style.background = `#000`
+      bullet.style.borderRadius = `50%`
+      bullet.style.position = `absolute`
+      //红色方块的宽度的 一半加上 红色方块的left
+      const {width: boxW, height: boxH, top: boxT, left: boxL} = getElementPosition(box)
+      bullet.style.left = `${(boxW / 2) + boxL - 5}px`
+      bullet.style.top = `${boxT + boxH + positionY}px`
+      square.appendChild(bullet)
+      bulletTimer = setTimeout(shootBullets, 100)
+    }, 100)
+  }
 
   document.addEventListener(`keyup`, function () {
     motionSwitch = false
