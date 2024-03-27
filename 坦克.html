@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+      * {
+          margin: 0;
+          padding: 0;
+      }
+
+      .square {
+          width: 400px;
+          height: 600px;
+          border: 1px solid #000000;
+          position: absolute;
+          left: 50px;
+          top: 50px;
+
+      }
+
+      .box {
+          width: 80px;
+          height: 80px;
+          background: red;
+          position: absolute;
+          top: 100px;
+          left: 100px;
+      }
+  </style>
+</head>
+<body>
+<div class="square">
+  <div class="box"></div>
+</div>
+<script>
+  const square = document.querySelector(`.square`)
+  const box = document.querySelector(`.box`)
+  let timer
+  const frame = 1000 / 60
+  let direction = `lr`
+  let speed = 10
+  let motionSwitch = false
+
+  function updatePosition(element) {
+    const directionMap = {
+      'lr': {property: 'left', sign: 1},
+      'rl': {property: 'left', sign: -1},
+      'tb': {property: 'top', sign: 1},
+      'bt': {property: 'top', sign: -1}
+    }
+
+    const {property, sign} = directionMap[direction]
+    const currentValue = (parseInt(window.getComputedStyle(element, null).getPropertyValue(property)))
+    const newValue = currentValue + (speed * sign)
+    const wh = property === `left` ? `width` : `height`
+    const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh]
+    console.log("Current value:", currentValue);
+    console.log("New value:", newValue);
+    console.log("Max limit:", maxLimit);
+
+    if (newValue < 0) {
+      box.style[property] = 0
+    } else if (newValue > maxLimit) {
+      box.style[property] = maxLimit + 'px'
+    } else {
+      box.style[property] = `${newValue}px`
+
+    }
+  }
+
+
+  function x() {
+    clearTimeout(timer)
+    timer = setTimeout(function () {
+      updatePosition(box)
+      if (motionSwitch) {
+        x()
+      }
+    }, frame)
+  }
+
+  function getElementPosition(element) {
+    return {
+      width: element.clientWidth,
+      height: element.clientHeight,
+      top: element.offsetTop,
+      left: element.offsetLeft
+    }
+  }
+
+  document.addEventListener(`keydown`, function (event) {
+    motionSwitch = true
+
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft'
+      || event.key === 'ArrowRight') {
+      x()
+    }
+
+    switch (event.key) {
+      case `ArrowUp`:
+        direction = `bt`
+        updatePosition(box)
+        break
+      case `ArrowDown`:
+        direction = `tb`
+        updatePosition(box)
+        break
+      case `ArrowLeft`:
+        direction = `rl`
+
+        updatePosition(box)
+        break
+      case `ArrowRight`:
+        direction = `lr`
+        updatePosition(box)
+        break
+    }
+  })
+
+  document.addEventListener(`keyup`, function () {
+    motionSwitch = false
+  })
+</script>
+</body>
+</html>

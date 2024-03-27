@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <style>
+    #father {
+      width: 400px;
+      height: 700px;
+      position: absolute;
+      left: 100px;
+      top: 100px;
+      border: 1px solid #000;
+    }
+
+    #box {
+      width: 100px;
+      height: 100px;
+      background-color: transparent;
+      border-top-color: hotpink;
+      border-bottom-color: deepskyblue;
+      border-left-color: salmon;
+      border-right-color: chocolate;
+      border-style: solid;
+      border-width: 1px;
+      position: absolute;
+      left: 200px;
+      top: 200px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="father">
+  <div id="box"></div>
+</div>
+<script>
+  const father = document.querySelector('#father')
+  const box = document.querySelector('#box')
+  const frame = 1000 / 60
+  let timer
+  let intervalId = {}
+  let bulletCount = 0
+  let position = 'lr'
+  let speed = 10
+  let isKeydown = false
+  let bulletDirection = 'tb'  //默认方向子弹发射方向朝下
+  // let isLaunch = false
+
+  function getBoxPosition() {
+    return {
+      left: parseInt(window.getComputedStyle(box, null).getPropertyValue('left')),
+      top: parseInt(window.getComputedStyle(box, null).getPropertyValue('top'))
+    }
+  }
+
+  //获取子弹的具体位置
+  function getBulletPosition() {
+    //pos 是红色盒子的位置信息
+    const pos = getBoxPosition()
+    console.log(pos)
+    const bulletPosition = {}
+
+   document.addEventListener('keyup',function (){
+     switch (bulletDirection) {
+       case 'lr': // 坦克朝右
+         bulletPosition.left = boxSize.width + pos.left
+         bulletPosition.top = pos.top + boxSize.height / 2
+         break;
+       case 'rl': // 坦克朝左
+         bulletPosition.left = pos.left
+         bulletPosition.top = pos.top + boxSize.height / 2
+         break;
+       case 'tb': // 坦克朝下
+         bulletPosition.left = boxSize.width / 2 + pos.left
+         bulletPosition.top = boxSize.height + pos.top
+         break;
+       case 'bt': // 坦克朝上
+         bulletPosition.left = boxSize.width / 2 + pos.left
+         bulletPosition.top = pos.top
+         break;
+     }
+   })
+    return bulletPosition
+  }
+
+  const positionValues = {
+    'lr': {'property': 'left', 'step': speed},
+    'rl': {'property': 'left', 'step': -speed},
+    'tb': {'property': 'top', 'step': speed},
+    'bt': {'property': 'top', 'step': -speed},
+  }
+
+  const boxSize = {
+    width: parseInt(window.getComputedStyle(box, null).getPropertyValue('width')),
+    height: parseInt(window.getComputedStyle(box, null).getPropertyValue('height'))
+  }
+  const fatherSize = {
+    width: parseInt(window.getComputedStyle(father, null).getPropertyValue('width')),
+    height: parseInt(window.getComputedStyle(father, null).getPropertyValue('height'))
+  }
+
+  function x() {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    timer = setTimeout(() => {
+      const pos = getBoxPosition() //利用 box 移动一次前的位置信息来算出下一次的位置信息,目标是 box 要移动的时候计算出位置信息
+      //获取到旧的 left 值
+      const key = positionValues[position]['property'] // left top
+      const value = pos[key] // 对应的值
+      //获取到 step 10
+      const step = positionValues[position][`step`]
+      const newProperty = value + step
+
+      // //父元素的宽度 减去 子元素的宽度
+      const wh = key === 'left' ? 'width' : 'height'
+      const maxLimit = fatherSize[wh] - boxSize[wh]
+
+      // if (newProperty < 0) {
+      //   box.style[key] = '0px'
+      // } else if (newProperty > maxLimit) {
+      //   box.style[key] = maxLimit + 'px'
+      // } else {
+      //   box.style[key] = newProperty + 'px'
+      // }
+      //
+      // if (newProperty < 0) {
+      //   box.style[positionValues[position]['property']] = '0px';
+      // } else if (newProperty > maxLimit) {
+      //   box.style[positionValues[position]['property']] = maxLimit + 'px'
+      // } else {
+      //   box.style[positionValues[position]['property']] = newProperty + 'px';
+      // }
+
+      if (position === 'lr') {
+        if (boxSize.width + pos.left >= fatherSize.width ) {
+          box.style.left = fatherSize.width - boxSize.width + 'px'
+        } else {
+          box.style.left = newProperty + 'px'
+        }
+      } else if (position === 'rl') {
+        if (pos.left <= 0) {
+          box.style.left = 0 + 'px'
+        } else {
+          box.style.left = newProperty + 'px'
+        }
+      } else if(position === 'tb') {
+        if (boxSize.height + pos.top >= fatherSize.height) {
+          box.style.top = fatherSize.height - boxSize.height + 'px'
+        } else {
+          box.style.top = newProperty + 'px'
+        }
+      }else if(position === 'bt') {
+        if (pos.top <= 0) {
+          box.style.top = 0 + 'px'
+        } else {
+          box.style.top = newProperty + 'px'
+        }
+      }
+
+      clearTimeout(timer)
+      if (isKeydown) {
+        x()
+      }
+
+    }, frame)
+  }
+
+  document.addEventListener('keyup', function () {
+    isKeydown = false
+  })
+  document.addEventListener('keydown', function (event) {
+    isKeydown = true
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      x()
+    }
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        position = 'rl'
+        break
+      case 'ArrowUp':
+        position = 'bt'
+        break
+      case 'ArrowRight':
+        position = 'lr'
+        break
+      case 'ArrowDown':
+        position = 'tb'
+        break
+      case 'w':
+        bulletDirection = 'bt'
+        box.style.transform = `rotate(${180}deg)`
+        break
+      case 'a':
+        bulletDirection = 'rl'
+        box.style.transform = `rotate(${90}deg)`
+        break
+      case 's':
+        bulletDirection = 'tb'
+        box.style.transform = `rotate(${360}deg)`
+        break
+      case 'd':
+        bulletDirection = 'lr'
+        box.style.transform = `rotate(${270}deg)`
+        break
+    }
+    if (event.code === 'Space') { // 按下空格键
+      event.preventDefault()
+      const pos = getBulletPosition()
+      // 创建新的子弹元素，添加到页面中
+      let bullet = document.createElement('div');
+      bullet.style.position = `absolute`
+      bullet.style.left = `${pos.left}px `
+      bullet.style.top = `${pos.top}px`
+      bullet.style.width = `${5}px`
+      bullet.style.height = `${5}px`
+      bullet.style.background = `#009223`
+      bullet.style.borderRadius = `${100}%`
+      father.appendChild(bullet)
+      shootBullet(bullet, bulletCount, bulletDirection)
+      bulletCount += 1
+    }
+
+  });
+  //开始子弹的运动
+  function shootBullet(bullet, bulletId, direction) {
+    intervalId[bulletId] = setInterval(() => {
+      const oldTop = parseInt(window.getComputedStyle(bullet, null).getPropertyValue('top'))
+      const oldLeft = parseInt(window.getComputedStyle(bullet, null).getPropertyValue('left'))
+      let newValue
+      const key = positionValues[direction]['property']
+      const speed = positionValues[direction]['step']
+      //旧的top或旧的 left 值加上单位移动距离
+      const oldValue = key === 'left' ? oldLeft : oldTop
+      newValue = oldValue + speed  // 旧的top或旧的 left 值加上单位移动距离
+      // if (direction === 'lr') {
+      //   newLeft = oldLeft + speed
+      // } else if (direction === 'rl') {
+      //   newLeft = oldLeft - speed
+      // } else if (direction === 'tb') {
+      //   newTop = oldTop + speed
+      // } else if (direction === 'bt') {
+      //   newTop = oldTop - speed
+      // }
+      //0.认识到自己思维上的坏习惯: 会不受控制的漏掉信息
+      //1.把已知条件写下来的方式逐渐养成改掉自己的坏习惯
+      //2.养成记笔记的习惯/养成写博客的习惯
+      //3.一定要总结
+      // 养成自己的理解去记笔记
+      // 问这句话在干什么? 获取它的位置信息/ 它到底是谁表达清楚
+      //谁在具体的什么时候获取谁的位置信息(left 或者 top 值)
+      //总结前面的课
+      //代码修改子弹的边界方式
+      //最终的目标; 增加控制条件 约定 wasd 只能改子弹的发射方向,坦克的方向是上下左右控制的 ????
+      if ((key === 'left' && newValue >= fatherSize.width) || (key === 'top' && newValue >= fatherSize.height) || newValue <= 0) { //已知条件 key left 或 top 对应的就是父元素的宽度或高度
+        bullet.style.display = 'none'
+        clearInterval(intervalId[bulletId])
+        delete intervalId[bulletId]
+      } else {
+        bullet.style[key] = `${newValue}px`
+      }
+    }, 40);
+  }
+</script>
+</body>
+</html>
