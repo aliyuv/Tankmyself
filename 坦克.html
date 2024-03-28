@@ -128,33 +128,29 @@
         bullet.style.left = `${(boxW / 2) + boxL - 5}px`
         bullet.style.top = `${boxT + boxH}px`
         square.appendChild(bullet)
-        shootBullets()
+        shootBullets(bullet, bulletCount)
+        bulletCount += 1
         break
     }
   })
 
 
-  let bulletTimer = null
-  let positionY = 0
+  let bulletTimer = {}
+  let bulletCount = 0
 
-  function shootBullets() {
-    clearTimeout(bulletTimer)
+  function shootBullets(bullet, bulletId) {
     //发射子弹运动函数
-    bulletTimer = setTimeout(function () {
-      positionY += speed * 2
-      const bullet = document.createElement('div')
-      bullet.style.width = `${10}px`
-      bullet.style.height = `${10}px`
-      bullet.style.background = `#000`
-      bullet.style.borderRadius = `50%`
-      bullet.style.position = `absolute`
+    clearInterval(bulletTimer[bulletId])
+    bulletTimer[bulletId] = setInterval(function () {
       //红色方块的宽度的 一半加上 红色方块的left
-      const {width: boxW, height: boxH, top: boxT, left: boxL} = getElementPosition(box)
-      bullet.style.left = `${(boxW / 2) + boxL - 5}px`
-      bullet.style.top = `${boxT + boxH + positionY}px`
-      square.appendChild(bullet)
-      bulletTimer = setTimeout(shootBullets, 100)
-    }, 100)
+      if (getElementPosition(bullet).top + speed * 2 > square.clientHeight) {
+        bullet.style.display = `none`
+        clearInterval(bulletTimer[bulletId])
+        delete bulletTimer[bulletId]
+      } else {
+        bullet.style.top = `${parseInt(bullet.style.top) + speed}px`
+      }
+    }, 40)
   }
 
   document.addEventListener(`keyup`, function () {
