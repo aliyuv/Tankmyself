@@ -1,11 +1,12 @@
 class Stack {
   constructor(props) {
-    this.items = {}
+    this._i = Symbol(`Stack`)
+    this[this._i] = {}
     this.lenght = 0
   }
 
   push(node) {
-    this.items[this.lenght] = node
+    this[this._i][this.lenght] = node
     this.lenght++
   }
 
@@ -15,11 +16,15 @@ class Stack {
     }
     this.lenght--
     //拿到删除的元素
-    const r = this.items[this.lenght]
+    const r = this[this._i][this.lenght]
     // 随后删除当前元素
-    delete this.items[this.items]
+    delete this[this._i]
     //返回删除后的元素
     return r
+  }
+
+  getItems() {
+    return this[this._i]
   }
 
   // 获取栈顶节点
@@ -27,7 +32,7 @@ class Stack {
     if (this.isEmpty()) {
       return null
     }
-    return this.items[this.lenght - 1]
+    return this[this._i][this.lenght - 1]
   }
 
   isEmpty() {
@@ -35,7 +40,7 @@ class Stack {
   }
 
   clear() {
-    this.items = {}
+    this[this._i] = {}
     this.lenght = 0
   }
 }
