@@ -13,7 +13,7 @@
       }
 
       .square {
-          width: 400px;
+          width: 900px;
           height: 600px;
           border: 1px solid #000000;
           position: absolute;
@@ -30,11 +30,21 @@
           top: 100px;
           left: 100px;
       }
+
+      .pao {
+          width: 10px;
+          height: 30px;
+          background: green;
+          position: absolute;
+          top: 180px;
+          left: calc(140px - 5px);
+      }
   </style>
 </head>
 <body>
 <div class="square">
   <div class="box"></div>
+  <div class="pao"></div>
 </div>
 <script>
   const square = document.querySelector(`.square`)
@@ -54,18 +64,19 @@
     }
 
     const {property, sign} = directionMap[direction]
+    //当前box left or top 移动的值
     const currentValue = (parseInt(window.getComputedStyle(element, null).getPropertyValue(property)))
+    console.log(currentValue);
     const newValue = currentValue + (speed * sign)
     const wh = property === `left` ? `width` : `height`
     const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh]
-
+    xx()
     if (newValue < 0) {
       box.style[property] = 0
     } else if (newValue > maxLimit) {
       box.style[property] = maxLimit + 'px'
     } else {
       box.style[property] = `${newValue}px`
-
     }
   }
 
@@ -88,29 +99,26 @@
       left: element.offsetLeft
     }
   }
-
   document.addEventListener(`keydown`, function (event) {
     motionSwitch = true
-
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft'
       || event.key === 'ArrowRight') {
       x()
     }
     switch (event.key) {
-      case `ArrowUp`:
+      case `ArrowUp` :
         direction = `bt`
         updatePosition(box)
         break
-      case `ArrowDown`:
+      case `ArrowDown` :
         direction = `tb`
         updatePosition(box)
         break
-      case `ArrowLeft`:
+      case `ArrowLeft` :
         direction = `rl`
-
         updatePosition(box)
         break
-      case `ArrowRight`:
+      case `ArrowRight` :
         direction = `lr`
         updatePosition(box)
         break
@@ -134,6 +142,15 @@
     }
   })
 
+  function xx() {
+    //获取 box 移动的实时位置 设置给 pao
+    const {width, height, top, left} = getElementPosition(box)
+    console.log(getElementPosition(box));
+    const pao = document.querySelector(`.pao`)
+    pao.style.top = `${height + top - 10 }px`
+    pao.style.left = `${width / 2 + left}px`
+
+  }
 
   let bulletTimer = {}
   let bulletCount = 0
@@ -148,14 +165,15 @@
         clearInterval(bulletTimer[bulletId])
         delete bulletTimer[bulletId]
       } else {
-        bullet.style.top = `${parseInt(bullet.style.top) + speed}px`
+        bullet.style.top = `${getElementPosition(bullet).top + speed}px`
       }
     }, 40)
   }
 
-  document.addEventListener(`keyup`, function () {
+  document.addEventListener(`keyup`, function (event) {
     motionSwitch = false
   })
+
 </script>
 </body>
 </html>
