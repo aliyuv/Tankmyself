@@ -36,19 +36,22 @@
           height: 30px;
           background: green;
           position: absolute;
-          top: 180px;
-          left: calc(140px - 5px);
+          top: 25px;
+          left: 50%;
+          transform: translateX(-50%);
       }
   </style>
 </head>
 <body>
 <div class="square">
-  <div class="box"></div>
-  <div class="pao"></div>
+  <div class="box">
+    <div class="pao"></div>
+  </div>
 </div>
 <script>
   const square = document.querySelector(`.square`)
   const box = document.querySelector(`.box`)
+  const pao = document.querySelector(`.pao`)
   let timer
   const frame = 1000 / 60
   let direction = `lr`
@@ -69,8 +72,8 @@
     console.log(currentValue);
     const newValue = currentValue + (speed * sign)
     const wh = property === `left` ? `width` : `height`
-    const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh]
-    xx()
+    const paoHeightExtend = (wh === `height`) ? 0 : pao.clientHeight
+    const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh] - paoHeightExtend
     if (newValue < 0) {
       box.style[property] = 0
     } else if (newValue > maxLimit) {
@@ -78,6 +81,8 @@
     } else {
       box.style[property] = `${newValue}px`
     }
+    // 红色盒子的高度 + 红色盒子的移动距离+ 炮筒的高度 大于或等于 父级盒子的高度就是超出
+    console.log(`11` + box.clientHeight);
   }
 
 
@@ -99,6 +104,7 @@
       left: element.offsetLeft
     }
   }
+
   document.addEventListener(`keydown`, function (event) {
     motionSwitch = true
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft'
@@ -142,16 +148,6 @@
     }
   })
 
-  function xx() {
-    //获取 box 移动的实时位置 设置给 pao
-    const {width, height, top, left} = getElementPosition(box)
-    console.log(getElementPosition(box));
-    const pao = document.querySelector(`.pao`)
-    pao.style.top = `${height + top - 10 }px`
-    pao.style.left = `${width / 2 + left}px`
-
-  }
-
   let bulletTimer = {}
   let bulletCount = 0
 
@@ -174,6 +170,16 @@
     motionSwitch = false
   })
 
+  function intPaoPosition() {
+    //坦克主题的宽度一半减去炮筒宽度的一半 然后 Y 轴就直接 -炮筒的高度就到最上面去了
+    //TODO 子弹也应该默认向上发射
+    const offsetPaoX = box.offsetWidth / 2 - pao.offsetWidth / 2
+    const offsetPaoY = -pao.offsetHeight
+    pao.style.left = `${offsetPaoX + 5}px`
+    pao.style.top = `${offsetPaoY}px`
+  }
+
+  intPaoPosition()
 </script>
 </body>
 </html>
