@@ -29,6 +29,7 @@
           position: absolute;
           top: 100px;
           left: 100px;
+          transition: transform 0.5s ease-in-out; /* 设置过渡效果，持续时间为0.5秒 */
       }
 
       .pao {
@@ -69,20 +70,22 @@
     const {property, sign} = directionMap[direction]
     //当前box left or top 移动的值
     const currentValue = (parseInt(window.getComputedStyle(element, null).getPropertyValue(property)))
-    console.log(currentValue);
     const newValue = currentValue + (speed * sign)
     const wh = property === `left` ? `width` : `height`
-    const paoHeightExtend = (wh === `height`) ? 0 : pao.clientHeight
-    const maxLimit = getElementPosition(square)[wh] - getElementPosition(box)[wh] - paoHeightExtend
+    console.log(wh);
+    const maxLimit = getElementPosition(square)[wh] - (getElementPosition(box)[wh] + getElementPosition(pao)[wh]);
     if (newValue < 0) {
       box.style[property] = 0
+    } else if (newValue + getElementPosition(pao)[wh] < 0) {
+      box.style[property] = `${getElementPosition(pao)[wh]}px`
+      console.log(`进来了`)
     } else if (newValue > maxLimit) {
       box.style[property] = maxLimit + 'px'
     } else {
       box.style[property] = `${newValue}px`
     }
     // 红色盒子的高度 + 红色盒子的移动距离+ 炮筒的高度 大于或等于 父级盒子的高度就是超出
-    console.log(`11` + box.clientHeight);
+
   }
 
 
@@ -145,6 +148,19 @@
         shootBullets(bullet, bulletCount)
         bulletCount += 1
         break
+      case `w`:
+        box.style.transform = `rotate(${0}deg) `
+        break
+      case `s`:
+        box.style.transform = `rotate(${180}deg) `
+        break
+      case `a`:
+        box.style.transform = `rotate(${270}deg) `
+        break
+      case `d`:
+        box.style.transform = `rotate(${90}deg) `
+        break
+
     }
   })
 
@@ -170,8 +186,9 @@
     motionSwitch = false
   })
 
+  //假设炮筒在元素内部
   function intPaoPosition() {
-    //坦克主题的宽度一半减去炮筒宽度的一半 然后 Y 轴就直接 -炮筒的高度就到最上面去了
+    //坦克主体的宽度一半减去炮筒宽度的一半 然后 Y 轴就直接 -炮筒的高度就到最上面去了
     //TODO 子弹也应该默认向上发射
     const offsetPaoX = box.offsetWidth / 2 - pao.offsetWidth / 2
     const offsetPaoY = -pao.offsetHeight
@@ -180,6 +197,7 @@
   }
 
   intPaoPosition()
+
 </script>
 </body>
 </html>
