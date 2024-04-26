@@ -32,32 +32,22 @@
           transition: transform 0.5s ease-in-out; /* 设置过渡效果，持续时间为0.5秒 */
       }
 
-      .pao {
-          width: 10px;
-          height: 30px;
-          background: green;
-          position: absolute;
-          top: 25px;
-          left: 50%;
-          transform: translateX(-50%);
-      }
   </style>
 </head>
 <body>
 <div class="square">
   <div class="box">
-    <div class="pao"></div>
   </div>
 </div>
 <script>
   const square = document.querySelector(`.square`)
   const box = document.querySelector(`.box`)
-  const pao = document.querySelector(`.pao`)
   let timer
   const frame = 1000 / 60
   let direction = `lr`
   let speed = 10
   let motionSwitch = false
+
 
   function updatePosition(element) {
     const directionMap = {
@@ -66,19 +56,14 @@
       'tb': {property: 'top', sign: 1},
       'bt': {property: 'top', sign: -1}
     }
-
     const {property, sign} = directionMap[direction]
     //当前box left or top 移动的值
     const currentValue = (parseInt(window.getComputedStyle(element, null).getPropertyValue(property)))
     const newValue = currentValue + (speed * sign)
     const wh = property === `left` ? `width` : `height`
-    console.log(wh);
-    const maxLimit = getElementPosition(square)[wh] - (getElementPosition(box)[wh] + getElementPosition(pao)[wh]);
+    const maxLimit = getElementPosition(square)[wh] - (getElementPosition(box)[wh]);
     if (newValue < 0) {
       box.style[property] = 0
-    } else if (newValue + getElementPosition(pao)[wh] < 0) {
-      box.style[property] = `${getElementPosition(pao)[wh]}px`
-      console.log(`进来了`)
     } else if (newValue > maxLimit) {
       box.style[property] = maxLimit + 'px'
     } else {
@@ -143,22 +128,27 @@
         //红色方块的宽度的 一半加上 红色方块的left
         const {width: boxW, height: boxH, top: boxT, left: boxL} = getElementPosition(box)
         bullet.style.left = `${(boxW / 2) + boxL - 5}px`
-        bullet.style.top = `${boxT + boxH}px`
+        // bullet.style.top = `${boxT + boxH}px`
         square.appendChild(bullet)
         shootBullets(bullet, bulletCount)
         bulletCount += 1
         break
+      //TODO 这里还是存在问题的
       case `w`:
-        box.style.transform = `rotate(${0}deg) `
+        //子弹往上发射
+        //首先子弹在上面时候初始位置计算
+        //红色盒子宽度的一半 +  红色盒子移动距离 这个是左右距离
+        //红色盒子距离父元素顶部的距离
+        direction = `bt`
         break
       case `s`:
-        box.style.transform = `rotate(${180}deg) `
+        direction = `tb`
         break
       case `a`:
-        box.style.transform = `rotate(${270}deg) `
+        direction = `rl`
         break
       case `d`:
-        box.style.transform = `rotate(${90}deg) `
+        direction = `lr`
         break
 
     }
@@ -170,34 +160,46 @@
   function shootBullets(bullet, bulletId) {
     //发射子弹运动函数
     clearInterval(bulletTimer[bulletId])
+    const directionMap = {
+      'lr': {property: 'left', sign: 1},
+      'rl': {property: 'left', sign: -1},
+      'tb': {property: 'top', sign: 1},
+      'bt': {property: 'top', sign: -1}
+    }
+    const {property, sign} = directionMap[direction]
+    if (direction === `lr`) {
+      bullet.style.left = `${getElementPosition(box).width + getElementPosition(box).left}px`
+      bullet.style.top = `${getElementPosition(box).top + getElementPosition(box).height / 2}px`
+    } else if (direction === `rl`) {
+      bullet.style.left = `${getElementPosition(box).left - 10}px`
+      bullet.style.top = `${getElementPosition(box).top + getElementPosition(box).height / 2}px`
+    } else if (direction === `tb`) {
+      bullet.style.left = `${getElementPosition(box).left + getElementPosition(box).width / 2}px`
+      bullet.style.top = `${getElementPosition(box).top + getElementPosition(box).height}px`
+    } else if (direction === `bt`) {
+      bullet.style.left = `${getElementPosition(box).left + getElementPosition(box).width / 2}px`
+      bullet.style.top = `${getElementPosition(box).top - 10}px`
+    }
     bulletTimer[bulletId] = setInterval(function () {
-      //红色方块的宽度的 一半加上 红色方块的left
-      if (getElementPosition(bullet).top + speed * 2 > square.clientHeight) {
+      //子弹的最大移动距离  就是 红色盒子的 top 加上 子弹的 top  大于 square 元素的高度 就算是超出
+      const parent = bullet.getBoundingClientRect()
+      // 有错误的代码
+      if (bullet.getBoundingClientRect().top < parent.height) {
         bullet.style.display = `none`
         clearInterval(bulletTimer[bulletId])
         delete bulletTimer[bulletId]
       } else {
-        bullet.style.top = `${getElementPosition(bullet).top + speed}px`
+        bullet.style[property] = `${getElementPosition(bullet)[property] + (speed * sign)}px`
       }
     }, 40)
   }
 
-  document.addEventListener(`keyup`, function (event) {
+  document.addEventListener(`keyup`, function () {
     motionSwitch = false
   })
 
-  //假设炮筒在元素内部
-  function intPaoPosition() {
-    //坦克主体的宽度一半减去炮筒宽度的一半 然后 Y 轴就直接 -炮筒的高度就到最上面去了
-    //TODO 子弹也应该默认向上发射
-    const offsetPaoX = box.offsetWidth / 2 - pao.offsetWidth / 2
-    const offsetPaoY = -pao.offsetHeight
-    pao.style.left = `${offsetPaoX + 5}px`
-    pao.style.top = `${offsetPaoY}px`
+  function updateBulletPosition() {
   }
-
-  intPaoPosition()
-
 </script>
 </body>
 </html>
